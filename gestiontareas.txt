@@ -1,0 +1,68 @@
+define Tarea como_clase
+    propiedad texto
+    propiedad completada
+
+    hace inicializa(texto)
+        yo.texto = texto
+        yo.completada = falso
+    fin
+
+    hace marcar_completada()
+        yo.completada = verdad
+    fin
+fin
+
+define Tareas como_clase
+    propiedad lista_tareas
+
+    hace inicializa()
+        yo.lista_tareas = lista()
+    fin
+
+    hace agregar(texto)
+        tarea = Tarea(texto)
+        yo.lista_tareas.agrega(tarea)
+    fin
+
+    hace mostrar()
+        si yo.lista_tareas.contiene_algo entonces
+            por_cada t en yo.lista_tareas
+                si t.completada entonces
+                    imprime("✔ " + t.texto)
+                si_no
+                    imprime("✗ " + t.texto)
+                fin
+            fin
+        si_no
+            imprime("No hay tareas.")
+        fin
+    fin
+
+    hace marcar_completada(indice)
+        si indice < yo.lista_tareas.longitud entonces
+            yo.lista_tareas[indice].marcar_completada()
+        si_no
+            imprime("Índice inválido.")
+        fin
+    fin
+
+    hace eliminar(indice)
+        si indice < yo.lista_tareas.longitud entonces
+            yo.lista_tareas.elimina_en(indice)
+        si_no
+            imprime("Índice inválido.")
+        fin
+    fin
+fin
+
+sea tareas = Tareas()
+tareas.agregar("Estudiar para el examen")
+tareas.agregar("Hacer ejercicio")
+tareas.agregar("Leer un libro")
+
+tareas.mostrar()
+
+tareas.marcar_completada(1)
+tareas.eliminar(0)
+
+tareas.mostrar()

@@ -1,0 +1,96 @@
+# Programa Avellana: Calculadora de Números Primos y Estadísticas
+# Demuestra: variables, bucles, condicionales, E/S, operaciones
+
+sea numero_limite = 50
+sean primos_encontrados, suma_primos, contador
+
+imprimir("=== CALCULADORA DE NÚMEROS PRIMOS ===")
+imprimir("Buscando números primos hasta:", numero_limite)
+
+# Inicializar variables
+sea primo_actual = 2
+primos_encontrados = 0
+suma_primos = 0
+contador = 0
+
+imprimir("Números primos encontrados:")
+
+mientras primo_actual <= numero_limite hace
+    sea es_primo = verdad
+    sea divisor = 2
+    
+    # Verificar si es primo
+    mientras divisor < primo_actual hace
+        si primo_actual % divisor == 0 entonces
+            es_primo = falso
+            salir
+        fin
+        divisor = divisor + 1
+    fin
+    
+    si es_primo entonces
+        imprimir(" - ", primo_actual)
+        primos_encontrados = primos_encontrados + 1
+        suma_primos = suma_primos + primo_actual
+        contador = contador + 1
+    fin
+    
+    primo_actual = primo_actual + 1
+fin
+
+# Calcular promedio
+sea promedio = 0
+si primos_encontrados > 0 entonces
+    promedio = suma_primos / primos_encontrados
+fin
+
+# Mostrar resultados
+imprimir("")
+imprimir("=== RESULTADOS ===")
+imprimir("Total de primos encontrados:", primos_encontrados)
+imprimir("Suma de todos los primos:", suma_primos)
+imprimir("Promedio de primos:", promedio)
+
+# Clasificación
+imprimir("")
+imprimir("=== CLASIFICACIÓN ===")
+si primos_encontrados > 10 entonces
+    imprimir("¡Excelente! Muchos primos encontrados")
+o_si primos_encontrados > 5 entonces
+    imprimir("Buen trabajo, cantidad decente de primos")
+o_si primos_encontrados > 0 entonces
+    imprimir("Pocos primos, pero es un inicio")
+si_no
+    imprimir("No se encontraron números primos")
+fin
+
+# Solicitar número al usuario para verificar
+imprimir("")
+sea numero_usuario = leer("Ingresa un número para verificar si es primo: ")
+
+# Convertir entrada a número
+sea num = numero_usuario
+sea es_primo_usuario = verdad
+sea div = 2
+
+si num <= 1 entonces
+    es_primo_usuario = falso
+si_no
+    mientras div < num hace
+        si num % div == 0 entonces
+            es_primo_usuario = falso
+            salir
+        fin
+        div = div + 1
+    fin
+fin
+
+imprimir("")
+si es_primo_usuario entonces
+    imprimir("¡El número", num, "SÍ es primo!")
+si_no
+    imprimir("El número", num, "NO es primo")
+fin
+
+imprimir("")
+imprimir("=== FIN DEL PROGRAMA ===")
