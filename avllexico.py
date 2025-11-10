@@ -1,5 +1,5 @@
 """
-lexico.py
+lexico
 """
 
 

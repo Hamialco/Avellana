@@ -1,5 +1,4 @@
 """
-eval_v6.py
 evaluador de expresiones para lenguaje orientado a objetos en español
 """
 

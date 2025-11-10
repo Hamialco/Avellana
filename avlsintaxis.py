@@ -1,6 +1,5 @@
 """
-sintaxis_v3.py
-analizador sintáctico para lenguaje orientado a objetos en español
+sintaxis
 """
 
 from avllexico import *
@@ -28,6 +27,46 @@ ERR_SEMANTICA_METODO_NO_DECL = 103
 ERR_SEMANTICA_IDENTIFICADOR_NO_ENTERO = 104
 ERR_SEMANTICA_IDENT_METODO_MAL_USO = 105
 ERR_SEMANTICA_TIPO_NO_COINCIDE = 106
+
+class TablaSimbolos:
+    def __init__(self):
+        self.simbolos = {}
+        self.funciones = {}
+        
+    def agregar_variable(self, nombre, tipo, valor=None):
+        if nombre in self.simbolos:
+            return False
+        self.simbolos[nombre] = {
+            'tipo': tipo,
+            'valor': valor,
+            'es_funcion': False
+        }
+        return True
+        
+    def agregar_funcion(self, nombre, tipo_retorno=None):
+        if nombre in self.funciones:
+            return False
+        self.funciones[nombre] = {
+            'tipo_retorno': tipo_retorno,
+            'parametros': []
+        }
+        return True
+        
+    def existe_variable(self, nombre):
+        return nombre in self.simbolos
+        
+    def existe_funcion(self, nombre):
+        return nombre in self.funciones
+        
+    def obtener_tipo_variable(self, nombre):
+        if nombre in self.simbolos:
+            return self.simbolos[nombre]['tipo']
+        return None
+        
+    def obtener_tipo_funcion(self, nombre):
+        if nombre in self.funciones:
+            return self.funciones[nombre]['tipo_retorno']
+        return None
 
 class Sintaxis:
     def __init__(self, lex):
@@ -176,10 +215,80 @@ class Sintaxis:
             
         return error
 
+    def proc_definicion_funcion(self):
+        """Procesa definición de funciones sin parámetros"""
+        error = ERR_NO_SINTAX_ERROR
+    
+        # Esperar tipo de retorno o 'metodo'
+        if self.tok_actual[1] in (RES_ENTERO, RES_FLOTANTE, RES_CADENA, RES_BOOLEANO, RES_VOID, RES_METODO):
+            tipo_retorno = self.tok_actual[1]
+            self.sig_token()
+            
+            if self.tok_actual[1] == LIN_IDENTIFICADOR:
+                nombre_funcion = self.tok_actual[0]
+                
+                # Agregar a tabla de símbolos
+                error_sem = self.agregar_identificador(nombre_funcion, RES_METODO, 0)
+                if error_sem != ERR_SEMANTICA_NO_ERROR:
+                    return error_sem
+                    
+                self.sig_token()
+                
+                if self.tok_actual[1] == LIN_EOLN:
+                    self.sig_token()
+                    
+                    # Procesar cuerpo de la función
+                    error = self.proc_instrucciones()
+                    if error != ERR_NO_SINTAX_ERROR:
+                        return error
+                    
+                    # Verificar fin de función
+                    if self.tok_actual[1] == RES_FIN_METODO:
+                        self.sig_token()
+                    else:
+                        error = ERR_FIN_METODO
+                else:
+                    error = ERR_EOLN
+            else:
+                error = ERR_IDENTIFICADOR
+        else:
+            error = ERR_IDENTIFICADOR
+            
+        return error
+
+    def proc_def_llamada_funcion(self):
+            """Procesa llamada a función sin parámetros"""
+            error = ERR_NO_SINTAX_ERROR
+            
+            if self.tok_actual[1] == LIN_IDENTIFICADOR:
+                nombre_funcion = self.tok_actual[0]
+                
+                # Verificar que existe como función
+                tipo_id = self.get_tipo_identificador(nombre_funcion)
+                if tipo_id != RES_METODO:
+                    return ERR_SEMANTICA_METODO_NO_DECL
+                    
+                self.sig_token()
+                
+                if self.tok_actual[0] == "(":
+                    self.sig_token()
+                    
+                    # Verificar paréntesis de cierre (sin parámetros)
+                    if self.tok_actual[0] == ")":
+                        self.sig_token()
+                    else:
+                        error = ERR_PARENTESIS_CERRAR
+                else:
+                    error = ERR_PARENTESIS_ABRIR
+            else:
+                error = ERR_IDENTIFICADOR
+                
+            return error
+
     def proc_instrucciones(self):
         error = ERR_NO_SINTAX_ERROR
 
-        while error == ERR_NO_SINTAX_ERROR and not self.tok_actual[1] in (RES_FIN_METODO, RES_FIN_CONSTRUCTOR, RES_FIN_CLASE):
+        while error == ERR_NO_SINTAX_ERROR and not self.tok_actual[1] in (RES_FIN_METODO, RES_FIN_CONSTRUCTOR, RES_FIN_CLASE, RES_FIN_SI, RES_FIN_MIENTRAS, RES_FIN_PARA, RES_SINO):
             if self.tok_actual[1] == RES_SI:
                 error = self.proc_def_si()
             elif self.tok_actual[1] == RES_PARA:
@@ -193,64 +302,118 @@ class Sintaxis:
             elif self.tok_actual[1] == RES_RETORNAR:
                 error = self.proc_def_retornar()
             elif self.tok_actual[1] == LIN_IDENTIFICADOR:
-                error = self.proc_def_identificador()
+                siguiente_token = self.lst_tokens[self.i_token + 1] if self.i_token + 1 < len(self.lst_tokens) else None
+                if siguiente_token and siguiente_token[0] == "(":
+                    error = self.proc_def_llamada_funcion()
+                else:
+                    error = self.proc_def_identificador()
+            elif self.tok_actual[1] in (RES_ENTERO, RES_FLOTANTE, RES_CADENA, RES_BOOLEANO, RES_METODO):
+                error = self.proc_declaracion_variable()
 
             if error == ERR_NO_SINTAX_ERROR:
                 if self.tok_actual[1] == LIN_EOLN:
                     self.sig_token()
                 else:
+                    if self.tok_actual[1] in (RES_FIN_SI, RES_FIN_MIENTRAS, RES_FIN_PARA, RES_SINO): 
+                        break
                     error = ERR_EOLN
                 
         return error
     
     def proc_def_si(self):
         error = ERR_NO_SINTAX_ERROR
+        self.sig_token()  # Consumir 'si'
+    
+        # Procesar condición
         error = self.proc_def_condicion()
+        if error != ERR_NO_SINTAX_ERROR:
+            return error
         
-        if error == ERR_NO_SINTAX_ERROR and self.tok_actual[1] == LIN_EOLN:
+        if self.tok_actual[1] == LIN_EOLN:
             self.sig_token()
-            error = self.proc_instrucciones()
             
-            if error == ERR_NO_SINTAX_ERROR and self.tok_actual[1] == RES_FIN_SI:
+            # Procesar cuerpo del SI
+            error = self.proc_instrucciones()
+            if error != ERR_NO_SINTAX_ERROR:
+                return error
+            
+            # Verificar si hay SINO
+            if self.tok_actual[1] == RES_SINO:
+                self.sig_token()
+                if self.tok_actual[1] == LIN_EOLN:
+                    self.sig_token()
+                    # Procesar cuerpo del SINO
+                    error = self.proc_instrucciones()
+                    if error != ERR_NO_SINTAX_ERROR:
+                        return error
+            
+            # Verificar FIN_SI
+            if self.tok_actual[1] == RES_FIN_SI:
                 self.sig_token()
             else:
                 error = ERR_FIN_SI
         else:
-            error = ERR_CONDICION
+            error = ERR_EOLN
             
         return error
-    
-    def proc_def_para(self):
-        error = ERR_NO_SINTAX_ERROR
-        self.sig_token()
-        
-        error = self.proc_def_asignacion()
-        if error == ERR_NO_SINTAX_ERROR and self.tok_actual[1] == LIN_EOLN:
-            self.sig_token()
-            error = self.proc_instrucciones()
-            
-            if error == ERR_NO_SINTAX_ERROR and self.tok_actual[1] == RES_FIN_PARA:
-                self.sig_token()
-            else:
-                error = ERR_FIN_PARA
-                
-        return error
-    
+
     def proc_def_mientras(self):
+        """Procesa estructura MIENTRAS (while)"""
         error = ERR_NO_SINTAX_ERROR
-        error = self.proc_def_condicion()
-        
-        if error == ERR_NO_SINTAX_ERROR and self.tok_actual[1] == LIN_EOLN:
-            self.sig_token()
-            error = self.proc_instrucciones()
+        self.sig_token()  # Consumir 'mientras'
             
-            if error == ERR_NO_SINTAX_ERROR and self.tok_actual[1] == RES_FIN_MIENTRAS:
+        # Procesar condición
+        error = self.proc_def_condicion()
+        if error != ERR_NO_SINTAX_ERROR:
+            return error
+            
+        if self.tok_actual[1] == LIN_EOLN:
+            self.sig_token()
+                
+            # Procesar cuerpo del MIENTRAS
+            error = self.proc_instrucciones()
+            if error != ERR_NO_SINTAX_ERROR:
+                return error
+                
+            # Verificar FIN_MIENTRAS
+            if self.tok_actual[1] == RES_FIN_MIENTRAS:
                 self.sig_token()
             else:
                 error = ERR_FIN_MIENTRAS
+        else:
+            error = ERR_EOLN
                 
         return error
-    
+
+    def proc_def_para(self):
+        """Procesa estructura PARA (for)"""
+        error = ERR_NO_SINTAX_ERROR
+        self.sig_token()  # Consumir 'para'
+            
+        # Esperar asignación inicial
+        if self.tok_actual[1] == LIN_IDENTIFICADOR:
+            error = self.proc_def_asignacion()
+            if error != ERR_NO_SINTAX_ERROR:
+                return error
+            
+        if self.tok_actual[1] == LIN_EOLN:
+            self.sig_token()
+                
+            # Procesar cuerpo del PARA
+            error = self.proc_instrucciones()
+            if error != ERR_NO_SINTAX_ERROR:
+                return error
+                
+            # Verificar FIN_PARA
+            if self.tok_actual[1] == RES_FIN_PARA:
+                self.sig_token()
+            else:
+                error = ERR_FIN_PARA
+        else:
+            error = ERR_EOLN
+                
+        return error
+
     def proc_def_imprimir(self):
         error = ERR_NO_SINTAX_ERROR
         self.sig_token()
@@ -473,3 +636,18 @@ class Sintaxis:
             s = "metodo"
 
         return s
+
+    def get_arbol_sintactico(self):
+        """Retorna el árbol sintáctico generado (para byte-code)"""
+        # Esto sería una implementación simplificada
+        return {
+            'tipo': 'programa',
+            'instrucciones': self._construir_arbol()
+        }
+    
+    def _construir_arbol(self):
+        """Construye el árbol sintáctico a partir de los tokens"""
+        # Implementación simplificada para demostración
+        arbol = []
+        # Lógica para construir el árbol
+        return arbol
