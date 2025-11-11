@@ -32,9 +32,47 @@ class ByteCodeGenerator:
         'GT': 18,       # GT (mayor que)
         'LT': 19,       # LT (menor que)
         'GTE': 20,      # GTE (mayor o igual)
-        'LTE': 21       # LTE (menor o igual)
+        'LTE': 21,       # LTE (menor o igual)
+        'RETVAL': 22,    # RETVAL (retornar valor)
+        'STORE_ARR': 23,    # STORE_ARR nombre indice (almacena en arreglo)
+        'LOAD_ARR': 24,     # LOAD_ARR nombre indice (carga desde arreglo)
+        'ARR_SIZE': 25,     # ARR_SIZE nombre (obtiene tamaño)
     }
-    
+
+    def _generar_codigo_acceso_arreglo(self, nodo):
+        """Genera bytecode para acceso a arreglo"""
+        # Cargar índice
+        self._generar_expresion(nodo['indice'])
+        
+        if nodo['tipo'] == 'acceso_arreglo':
+            # Cargar elemento del arreglo
+            self.codigo.append((self.INSTRUCCIONES['LOAD_ARR'], nodo['nombre']))
+        elif nodo['tipo'] == 'asignacion_arreglo':
+            # Generar valor a asignar
+            self._generar_expresion(nodo['valor'])
+            # Almacenar en arreglo
+            self.codigo.append((self.INSTRUCCIONES['STORE_ARR'], nodo['nombre']))
+
+    def _generar_codigo_declaracion_arreglo(self, nodo):
+        """Genera bytecode para declaración de arreglo"""
+        # Inicializar arreglo con valores por defecto
+        for i in range(nodo['tamanio']):
+            # Push índice
+            self.codigo.append((self.INSTRUCCIONES['PUSH'], i))
+            
+            # Push valor por defecto según tipo
+            if nodo['tipo_elemento'] == RES_ENTERO:
+                self.codigo.append((self.INSTRUCCIONES['PUSH'], 0))
+            elif nodo['tipo_elemento'] == RES_FLOTANTE:
+                self.codigo.append((self.INSTRUCCIONES['PUSH'], 0.0))
+            elif nodo['tipo_elemento'] == RES_CADENA:
+                self.codigo.append((self.INSTRUCCIONES['PUSH'], ""))
+            elif nodo['tipo_elemento'] == RES_BOOLEANO:
+                self.codigo.append((self.INSTRUCCIONES['PUSH'], 0))
+                
+            # Almacenar en arreglo
+            self.codigo.append((self.INSTRUCCIONES['STORE_ARR'], nodo['nombre']))
+
     def generar_bytecode(self, arbol_sintactico, tabla_simbolos):
         """Genera byte-code real a partir del árbol sintáctico"""
         self.codigo = []
@@ -75,7 +113,7 @@ class ByteCodeGenerator:
                 self.codigo.append((self.INSTRUCCIONES['PRINT'],))
                 
             elif nodo['tipo'] == 'leer':
-                self.codigo.append((self.INSTRUCCIONES['READ'], nodo['variable']))
+                self._generar_codigo_entrada(nodo)
                 
             elif nodo['tipo'] == 'si':
                 self._generar_condicion(nodo['condicion'])
@@ -152,19 +190,75 @@ class ByteCodeGenerator:
                 self.codigo.append((etiqueta_fin + ':',))
                 
             elif nodo['tipo'] == 'llamada_funcion':
-                self.codigo.append((self.INSTRUCCIONES['CALL'], nodo['nombre']))
+                self._generar_codigo_llamada_funcion(nodo)
     
             elif nodo['tipo'] == 'definicion_funcion':
-                # Marcar inicio de función
-                etiqueta_funcion = f"func_{nodo['nombre']}"
-                self.codigo.append((etiqueta_funcion + ':',))
-                
-                # Generar cuerpo de la función
-                for instruccion in nodo['cuerpo']:
-                    self._generar_codigo(instruccion)
-                    
-                # Retorno de función
+                self._generar_codigo_funcion(nodo)
+
+            elif nodo['tipo'] == 'declaracion_arreglo':
+                self._generar_codigo_declaracion_arreglo(nodo)
+
+            elif nodo['tipo'] in ['acceso_arreglo', 'asignacion_arreglo']:
+                self._generar_codigo_acceso_arreglo(nodo)
+
+    def _generar_codigo_funcion(self, nodo):
+        """Genera bytecode para definición de función"""
+        etiqueta_funcion = f"func_{nodo['nombre']}"
+        self.codigo.append((etiqueta_funcion + ':',))
+        
+        # Procesar cuerpo de la función
+        for instruccion in nodo['cuerpo']:
+            if instruccion['tipo'] == 'retornar':
+                self._generar_codigo_retorno(instruccion)
+            else:
+                self._generar_codigo(instruccion)
+        
+        # Si no hay RET explícito, agregar retorno por defecto
+        if not any(inst.get('tipo') == 'retornar' for inst in nodo['cuerpo']):
+            if nodo.get('tipo_retorno') != RES_VOID:
+                # Retornar valor por defecto según el tipo
+                if nodo['tipo_retorno'] == RES_ENTERO:
+                    self.codigo.append((self.INSTRUCCIONES['PUSH'], 0))
+                elif nodo['tipo_retorno'] == RES_FLOTANTE:
+                    self.codigo.append((self.INSTRUCCIONES['PUSH'], 0.0))
+                elif nodo['tipo_retorno'] == RES_CADENA:
+                    self.codigo.append((self.INSTRUCCIONES['PUSH'], ""))
+                elif nodo['tipo_retorno'] == RES_BOOLEANO:
+                    self.codigo.append((self.INSTRUCCIONES['PUSH'], 0))
+                self.codigo.append((self.INSTRUCCIONES['RETVAL'],))
+            else:
                 self.codigo.append((self.INSTRUCCIONES['RET'],))
+
+    def _generar_codigo_llamada_funcion(self, nodo):
+        """Genera bytecode para llamada a función con retorno"""
+        # Guardar dirección de retorno
+        etiqueta_retorno = self.nueva_etiqueta()
+        self.codigo.append((self.INSTRUCCIONES['PUSH'], etiqueta_retorno))
+        
+        # Saltar a función
+        etiqueta_funcion = f"func_{nodo['nombre']}"
+        self.codigo.append((self.INSTRUCCIONES['JMP'], etiqueta_funcion))
+        
+        # Punto de retorno
+        self.codigo.append((etiqueta_retorno + ':',))
+        
+        # El valor de retorno queda en el tope de la pila
+        # Se puede usar en expresiones posteriores
+
+    def _generar_codigo_entrada(self, nodo):
+        """Genera bytecode para lectura de entrada"""
+        self.codigo.append((self.INSTRUCCIONES['READ'], nodo['variable']))
+
+    def _generar_codigo_retorno(self, nodo):
+        """Genera bytecode para instrucción retornar"""
+        if nodo['expresion'] is not None:
+            # Generar código para la expresión a retornar
+            self._generar_expresion(nodo['expresion'])
+            # Retornar con valor (el valor está en el tope de la pila)
+            self.codigo.append((self.INSTRUCCIONES['RETVAL'],))
+        else:
+            # Retorno sin valor
+            self.codigo.append((self.INSTRUCCIONES['RET'],))
 
     def _generar_expresion(self, expresion):
         """Genera código para expresiones"""

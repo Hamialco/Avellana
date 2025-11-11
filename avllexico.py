@@ -40,6 +40,18 @@ matriz_lexico = [
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
+TIPO_ENTERO = 1
+TIPO_FLOTANTE = 2
+TIPO_CADENA = 3
+TIPO_BOOLEANO = 4
+TIPO_VOID = 5
+TIPO_ERROR = -1
+
+TIPO_ARREGLO_ENTERO = 100
+TIPO_ARREGLO_FLOTANTE = 101
+TIPO_ARREGLO_CADENA = 102
+TIPO_ARREGLO_BOOLEANO = 103
+
 COL_ESPACIO = 0
 COL_LETRAS = 1
 COL_NUMEROS = 2
@@ -111,6 +123,10 @@ RES_NULO = 4007
 
 RES_NO_DECL = 5000
 
+RES_ARREGLO = 5000
+RES_TAMANIO = 5001
+RES_ELEMENTO = 5002
+
 lst_reservadas = (
     ("clase", RES_CLASE), ("fin_clase", RES_FIN_CLASE),
     ("metodo", RES_METODO), ("fin_metodo", RES_FIN_METODO),
@@ -124,7 +140,10 @@ lst_reservadas = (
     ("entero", RES_ENTERO), ("flotante", RES_FLOTANTE),
     ("cadena", RES_CADENA), ("booleano", RES_BOOLEANO),
     ("void", RES_VOID), ("verdadero", RES_VERDADERO),
-    ("falso", RES_FALSO), ("nulo", RES_NULO)
+    ("falso", RES_FALSO), ("nulo", RES_NULO),
+    ("arreglo", RES_ARREGLO),
+    ("tamanio", RES_TAMANIO),
+    ("elemento", RES_ELEMENTO)
 )
 
 ERR_NOERROR = 0
@@ -327,7 +346,25 @@ class Lexico:
         elif t == LIN_NUM_FLOTANTE:
             s_t = "constante numero flotante"
             
-        return s_t        
+        return s_t
+
+    def obtener_tipo_dato_token(self, token, tipo_token):
+        """Determina el tipo de dato de un token"""
+        if tipo_token in [LIN_NUM_ENTERO, RES_ENTERO]:
+            return TIPO_ENTERO
+        elif tipo_token in [LIN_NUM_FLOTANTE, RES_FLOTANTE]:
+            return TIPO_FLOTANTE
+        elif tipo_token in [LIN_CADENA, RES_CADENA]:
+            return TIPO_CADENA
+        elif tipo_token in [RES_BOOLEANO, RES_VERDADERO, RES_FALSO]:
+            return TIPO_BOOLEANO
+        elif tipo_token == RES_VOID:
+            return TIPO_VOID
+        elif tipo_token == LIN_IDENTIFICADOR:
+            # Para identificadores, necesitamos consultar la tabla de símbolos
+            return TIPO_ERROR  # Se determinará en análisis semántico
+        else:
+            return TIPO_ERROR        
         
     def tipo_identificador(self, id):   
         p_res = LIN_IDENTIFICADOR
@@ -335,7 +372,7 @@ class Lexico:
             if id == p[0]:
                 p_res = p[1]
                 break
-            
+                
         return p_res
 
     def get(self):
@@ -358,3 +395,27 @@ class Lexico:
             s = "token inválido"
 
         return s
+
+    def convertir_tipo_reservado_a_base(self, tipo_reservado):
+        """Convierte tipos RES_* a TIPO_* base para comparaciones"""
+        if tipo_reservado == RES_ENTERO:
+            return TIPO_ENTERO
+        elif tipo_reservado == RES_FLOTANTE:
+            return TIPO_FLOTANTE
+        elif tipo_reservado == RES_CADENA:
+            return TIPO_CADENA
+        elif tipo_reservado == RES_BOOLEANO:
+            return TIPO_BOOLEANO
+        elif tipo_reservado == RES_VOID:
+            return TIPO_VOID
+        else:
+            return TIPO_ERROR
+
+    def es_tipo_numerico(self, tipo):
+        """Verifica si el tipo es numérico (entero o flotante)"""
+        return tipo in [TIPO_ENTERO, TIPO_FLOTANTE, RES_ENTERO, RES_FLOTANTE]
+
+    def es_tipo_escalar(self, tipo):
+        """Verifica si el tipo es escalar (no void ni error)"""
+        return tipo in [TIPO_ENTERO, TIPO_FLOTANTE, TIPO_CADENA, TIPO_BOOLEANO, 
+                    RES_ENTERO, RES_FLOTANTE, RES_CADENA, RES_BOOLEANO]

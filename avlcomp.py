@@ -296,10 +296,26 @@ class Notepad:
                 
             i += 1
 
+    def configurar_entrada_interactiva(self):
+        """Configura callback para entrada de datos"""
+        def callback_entrada(mensaje):
+            # Crear ventana de diálogo para entrada
+            from tkinter import simpledialog
+            valor = simpledialog.askstring("Entrada de datos", mensaje)
+            return valor if valor is not None else "0"
+        
+        self.maquina_virtual.configurar_entrada_interactiva(callback_entrada)
+
     def ejecutar_paso_a_paso(self):
         """Ejecuta el programa paso a paso"""
         self.log("\n--- EJECUCIÓN PASO A PASO ---")
-        self.log("(Funcionalidad en desarrollo)")
+        
+        if self.maquina_virtual.ejecutar_paso_a_paso():
+            estado = self.maquina_virtual.obtener_estado()
+            self.log(f"✓ Instrucción ejecutada. Puntero: {estado['puntero']}")
+            self.mostrar_estado()
+        else:
+            self.log("✓ Ejecución completada")
         
     def mostrar_estado(self):
         """Muestra el estado actual de la máquina virtual"""
@@ -445,23 +461,29 @@ class Notepad:
         text_area = self.editor_actual()
         lex = Lexico(text_area.get("1.0", tk.END))
         error, token = lex.genera_lexico(False)
-        msg_error_lex = lex.mensaje_error(error)
         
         if error == ERR_NOERROR: 
             sintax = Sintaxis(lex)
             error = sintax.genera_sintaxis()
-            msg_error_sintax = sintax.mensaje_error(error)
-            self.log(f"{error} :: {msg_error_sintax}")
-
+            
             if error == ERR_NO_SINTAX_ERROR:
+                # Mostrar errores semánticos (nuevo)
+                errores_semanticos = sintax.get_errores_semanticos()
+                if errores_semanticos:
+                    self.log("--- ERRORES SEMÁNTICOS ENCONTRADOS ---")
+                    for error_sem in errores_semanticos:
+                        self.log(f"✗ {error_sem}")
+                else:
+                    self.log("✓ No se encontraron errores semánticos")
+                
+                # Mostrar tabla de símbolos (existente)
                 lst_semantica = sintax.get_lista_identificadores()
-                self.log("lista de identificadores")
+                self.log("\n--- TABLA DE SÍMBOLOS ---")
                 for id in lst_semantica:
-                    s = f"{id[0]} :: " + sintax.get_str_tipo_identificador(id[1])
+                    s = f"{id[0]} :: {sintax.get_str_tipo_identificador(id[1])}"
                     self.log("   " + s)
         else:
-            self.log(f"error de léxico: {error} :: {token} :: {msg_error_lex}")
-        self.log("total de líneas procesadas: " + str(lex.get_lineas()))
+            self.log(f"error de léxico: {error} :: {token} :: {lex.mensaje_error(error)}")
 
     def gen_bytecode(self):
         """Genera y muestra el byte-code"""
@@ -508,8 +530,14 @@ class Notepad:
         self.log("\n--- EJECUCIÓN DEL PROGRAMA ---")
         
         try:
-            # Ejecutar en máquina virtual
+            # Configurar entrada interactiva
+            self.configurar_entrada_interactiva()
+            
+            # Cargar y ejecutar bytecode
+            bytecode = self.generador_bytecode.get_codigo()
+            self.maquina_virtual.cargar_codigo(bytecode)
             self.maquina_virtual.ejecutar()
+            
             salida = self.maquina_virtual.obtener_salida()
             
             # Mostrar resultados
@@ -519,12 +547,7 @@ class Notepad:
                 self.log(linea)
             
             # Mostrar estado final
-            estado = self.maquina_virtual.obtener_estado()
-            self.estado_text.delete("1.0", tk.END)
-            self.estado_text.insert("1.0", 
-                                   f"Pila: {estado['pila']}\n"
-                                   f"Memoria: {estado['memoria']}\n"
-                                   f"Salida: {estado['salida']}")
+            self.mostrar_estado()
             
         except Exception as e:
             self.log(f"✗ Error en ejecución: {str(e)}")
