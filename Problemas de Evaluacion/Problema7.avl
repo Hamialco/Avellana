@@ -1,0 +1,17 @@
+arreglo cadena nombres[5]
+arreglo cadena claves[5]
+
+
+para i = 0 hasta 4
+    imprimir("Ingrese nombre:")
+    leer(nombres[i])
+    imprimir("Captura " + i + ":")
+    imprimir("Ingrese clave:")
+    leer(claves[i])
+fin_para
+
+imprimir("Resultado de las capturas")
+para i = 0 hasta 4
+    imprimir("Nombre:" + nombres[i] + " Clave:" + claves[i])
+fin_para
+

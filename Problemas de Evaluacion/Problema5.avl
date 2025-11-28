@@ -1,0 +1,5 @@
+entero i
+
+para i = 1 hasta 100
+    imprimir(i)
+fin_para

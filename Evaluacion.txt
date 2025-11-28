@@ -1,0 +1,54 @@
+EVALUACION
+Ǫué se entregará?
+Un programa que efectúe las 5 fases de la compilación de un programa y deberá
+mostrar evidencia en cada una de ellas
+• Léxico: Deberá mostrar los tokens válidos del código que se evalúe
+• Sintaxis: Deberá evaluar sintácticamente el código que se evalúe de acuerdo a
+las reglas que se definan para SU lenguaje
+• Semántica: Lista de variables y funciones encontradas al momento de hacer la
+revisión de sintaxis
+• Generación de byte-code: Para que el código funcione supongo el compilador
+deberá generar código byte- code, el cual se deberá mostrar una vez
+compilado el programa
+• Ejecución del programa: El código que se le inyecte al compilador deberá ser
+ejecutado de acuerdo al byte- code generado en la fase anterior.
+Ǫue deberá tener el lenguaje?
+• Manejo de variables (por lo menos de tipo cadena y numéricas)
+• Permitir usar cadenas números enteros y flotantes
+• Operaciones matemáticas básicas (Suma, resta, multiplicación división)
+• Ciclos (el equivalente a WHILE y al FOR)
+• Condiciones (equivalente al IF… y IF…. ELSE….)
+• Comentarios (tipo Python con # ó “”” ….”””) (nota: con uno tipo es suficiente)
+• Manejo de funciones / procedimientos (SIN entrada de parámetros. SIN salida
+con return)
+• Condiciones (por lo menos con los operadores: ==, > , < , <>) (si quieres
+puedes agregar >= y <= ) (nota: los tokens son de ejemplo, uds pueden definir
+los que quieran pero que hagan las mismas funciones)
+Cómo se evaluará?
+Se evaluará con 10 problemas que hagan lo siguiente:
+Problema 1: programa que imprima -Hola mundoProblema 2: programa que pida tu nombre, y después te salude (imprima “Hola Rafa”
+por ejemplo)
+Problema 3: programa que pida dos números, y después imprima la suma de ambos,
+también la resta, la multiplicación y división.
+Problema 4: programa que imprima los números (enteros) del 1 al 10 usando el ciclo
+WHILE (o equivalente)
+
+Problema 5: programa que imprima los números (enteros) del 1 al 100 usando FOR (o
+equivalente)
+Problema 6: Programa que capture una Clave y un Nombre (en una
+función/procedimiento) y después los imprima (en otro procedimiento). En el
+programa principal solo se llamará a las dos funciones.
+Problema 7: (Modificación del problema 6) capturar e imprimir 5 Claves y nombres.
+Problema 8: Un programa que capture “n” cantidad de números (en cada captura
+preguntar si deseas continuar capturando) y los vaya acumulando. Al final mostrar el
+resultado de la suma de números acumulados
+Problema 9:Un programa que capture la cotización del dólar, tenga una función que
+capture pesos, y los convierta a dólares (y muestre el resultado). Y que esta función
+se pueda usar hasta que el usuario quiera terminar de usarlo
+Problema 10: Si tu lenguaje tiene alguna capacidad especial ó diferente,
+muéstramelo en un programa. (Si no, diseña un problema diferente a los 9 anteriores)
+También se evaluara la respuesta del compilador a los errores
+Nota : La inclusión de “cajas negras” ó librerías que faciliten la creación del
+compilador ESTÁN PROHIBIDAS!.
+
+

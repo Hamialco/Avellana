@@ -1,0 +1,42 @@
+# Programa: Calculadora de Operaciones Básicas
+# Descripción: Realiza las 4 operaciones básicas con dos números ingresados
+
+entero numero1
+entero numero2
+entero resultado
+entero divisorCero
+
+# Solicitar primer número
+imprimir("Ingrese el primer número: ")
+leer(numero1)
+
+# Solicitar segundo número  
+imprimir("Ingrese el segundo número: ")
+leer(numero2)
+
+# Realizar operaciones
+resultado = numero1 + numero2
+imprimir("Suma: ")
+imprimir(resultado)
+
+resultado = numero1 - numero2
+imprimir("Resta: ")
+imprimir(resultado)
+
+resultado = numero1 * numero2
+imprimir("Multiplicación: ")
+imprimir(resultado)
+
+# Verificar división por cero
+divisorCero = 0
+si numero2 == divisorCero entonces
+    imprimir("División: No se puede dividir por cero")
+sino
+    # Usar flotante para la división
+    flotante division
+    division = numero1 / numero2
+    imprimir("División: ")
+    imprimir(division)
+fin_si
+
+imprimir("Operaciones completadas")

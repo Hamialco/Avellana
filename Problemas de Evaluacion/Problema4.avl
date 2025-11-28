@@ -1,0 +1,10 @@
+# Programa para probar el bucle mientras - Numeros del 1 al 10
+
+entero contador = 1
+
+mientras contador <= 10
+    imprimir(contador)
+    contador = contador + 1
+fin_mientras
+
+imprimir("Fin del programa")

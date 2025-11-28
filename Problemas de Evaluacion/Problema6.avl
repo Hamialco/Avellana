@@ -1,0 +1,14 @@
+funcion capturar_datos()
+    imprimir("Por favor, ingrese su clave:")
+    leer(clave)
+    imprimir("Por favor, ingrese su nombre:")
+    leer(nombre)
+fin_funcion
+
+funcion mostrar_datos()
+    imprimir("¡Bienvenido " + nombre + "!")
+    imprimir("Tu clave es " + clave)
+fin_funcion
+
+llamar capturar_datos
+llamar mostrar_datos
