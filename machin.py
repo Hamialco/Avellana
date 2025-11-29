@@ -39,7 +39,8 @@ class MaquinaVirtual:
         self.manejador_entrada = ManejadorEntrada()
         self.ejecutando_paso_a_paso = False
         self.pausa_ejecucion = False
-        self.arreglos = {} #Diccionario para almacenar arreglos
+        self.arreglos = {} 
+        self.ultimo_mensaje_impreso = ""
         
     def cargar_codigo(self, codigo):
         """Carga el byte-code en la máquina virtual"""
@@ -78,9 +79,6 @@ class MaquinaVirtual:
         
         while self.puntero < len(self.codigo):
             instruccion = self.codigo[self.puntero]
-            
-             # DEBUG: Mostrar instrucción actual
-            print(f"Ejecutando [{self.puntero}]: {instruccion}")
             
             if isinstance(instruccion[0], str) and instruccion[0].endswith(':'):
                 self.puntero += 1
@@ -133,12 +131,15 @@ class MaquinaVirtual:
                     if self.pila:
                         valor = self.pila.pop()
                         self.salida.append(str(valor))
-                        print(f"SALIDA: {valor}")  # Para depuración
+                        self.ultimo_mensaje_impreso = str(valor)
+                        print(f"SALIDA: {valor}")
                     else:
                         self.salida.append("ERROR: Pila vacía al intentar imprimir")
                 elif opcode == 9:  # READ
                     variable = instruccion[1]
-                    entrada = self.manejador_entrada.obtener_entrada(f"Ingrese {variable}: ")
+                    mensaje = self.ultimo_mensaje_impreso if self.ultimo_mensaje_impreso else f"Ingrese {variable}:"
+                    entrada = self.manejador_entrada.obtener_entrada(mensaje)
+                    self.ultimo_mensaje_impreso = "" 
                     try:
                         # Intentar convertir a número
                         if entrada.isdigit():

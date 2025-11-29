@@ -1,0 +1,19 @@
+# Problema 8: Suma acumulativa de números
+# Captura números hasta que el usuario decida parar
+
+entero acumulador = 0
+entero numero
+cadena respuesta = "si"
+
+mientras respuesta == "si"
+    imprimir("Ingrese un número: ")
+    leer(numero)
+    
+    acumulador = acumulador + numero
+    
+    imprimir("¿Desea ingresar otro número? (si/no): ")
+    leer(respuesta)
+fin_mientras
+
+imprimir("La suma total de los números es: ")
+imprimir(acumulador)
