@@ -1,0 +1,32 @@
+flotante cotizacion_dolar
+cadena continuar = "si"
+
+# Capturar cotización del dólar
+imprimir("Ingrese la cotización del dólar (pesos por 1 dólar): ")
+leer(cotizacion_dolar)
+
+# Función para convertir pesos a dólares
+funcion convertir_pesos_a_dolares()
+    flotante pesos
+    flotante dolares
+    
+    imprimir("Ingrese la cantidad en pesos mexicanos: ")
+    leer(pesos)
+    
+    si cotizacion_dolar <= 0 entonces
+        imprimir("Error: La cotización debe ser mayor que 0")
+    sino
+        dolares = pesos / cotizacion_dolar
+        imprimir("$" + pesos + " pesos mexicanos = $" + dolares + " dólares")
+    fin_si
+fin_funcion
+
+# Ciclo principal para usar la función repetidamente
+mientras continuar == "si"
+    llamar convertir_pesos_a_dolares
+    
+    imprimir("¿Desea convertir otra cantidad? (si/no): ")
+    leer(continuar)
+fin_mientras
+
+imprimir("Gracias por usar el conversor de moneda")

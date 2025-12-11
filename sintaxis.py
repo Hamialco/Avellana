@@ -1232,6 +1232,12 @@ class Sintaxis:
                     if self.arbol_sintactico['instrucciones']:
                         instruccion = self.arbol_sintactico['instrucciones'].pop()
                         nodo_para['cuerpo'].append(instruccion)
+            elif self.token_actual[1] == Tipos.LEX_LLAMAR:
+                error = self._procesar_llamada_funcion_simple()
+                if error == Errores.SINTAXIS_NINGUNO:
+                    if self.arbol_sintactico['instrucciones']:
+                        instruccion = self.arbol_sintactico['instrucciones'].pop()
+                        nodo_para['cuerpo'].append(instruccion)
             elif self.token_actual[1] == Tipos.LIN_EOLN:
                 self._siguiente_token()
             else:
@@ -1291,6 +1297,12 @@ class Sintaxis:
                         nodo_si['cuerpo'].append(instruccion)
             elif self.token_actual[1] == Tipos.LIN_IDENTIFICADOR:
                 error = self._procesar_identificador()
+                if error == Errores.SINTAXIS_NINGUNO:
+                    if self.arbol_sintactico['instrucciones']:
+                        instruccion = self.arbol_sintactico['instrucciones'].pop()
+                        nodo_si['cuerpo'].append(instruccion)
+            elif self.token_actual[1] == Tipos.LEX_LLAMAR:
+                error = self._procesar_llamada_funcion_simple()
                 if error == Errores.SINTAXIS_NINGUNO:
                     if self.arbol_sintactico['instrucciones']:
                         instruccion = self.arbol_sintactico['instrucciones'].pop()
@@ -1387,6 +1399,12 @@ class Sintaxis:
                         nodo_mientras['cuerpo'].append(instruccion)
             elif self.token_actual[1] == Tipos.LIN_IDENTIFICADOR:
                 error = self._procesar_identificador()
+                if error == Errores.SINTAXIS_NINGUNO:
+                    if self.arbol_sintactico['instrucciones']:
+                        instruccion = self.arbol_sintactico['instrucciones'].pop()
+                        nodo_mientras['cuerpo'].append(instruccion)
+            elif self.token_actual[1] == Tipos.LEX_LLAMAR:
+                error = self._procesar_llamada_funcion_simple()
                 if error == Errores.SINTAXIS_NINGUNO:
                     if self.arbol_sintactico['instrucciones']:
                         instruccion = self.arbol_sintactico['instrucciones'].pop()

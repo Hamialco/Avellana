@@ -32,8 +32,7 @@ Problema 3: programa que pida dos números, y después imprima la suma de ambos,
 también la resta, la multiplicación y división.
 Problema 4: programa que imprima los números (enteros) del 1 al 10 usando el ciclo
 WHILE (o equivalente)
-
-Problema 5: programa que imprima los números (enteros) del 1 al 100 usando FOR (o
+Problema 5: programa que imprima los números (enteros) del 1 al 100 usando FOR (o
 equivalente)
 Problema 6: Programa que capture una Clave y un Nombre (en una
 función/procedimiento) y después los imprima (en otro procedimiento). En el
@@ -50,5 +49,3 @@ muéstramelo en un programa. (Si no, diseña un problema diferente a los 9 anter
 También se evaluara la respuesta del compilador a los errores
 Nota : La inclusión de “cajas negras” ó librerías que faciliten la creación del
 compilador ESTÁN PROHIBIDAS!.
-
-
